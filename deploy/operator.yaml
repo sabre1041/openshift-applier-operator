@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openshift-applier-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: openshift-applier-operator
+  template:
+    metadata:
+      labels:
+        name: openshift-applier-operator
+    spec:
+      serviceAccountName: openshift-applier-operator
+      containers:
+        - name: openshift-applier-operator
+          # Replace this with the built image name
+          image: REPLACE_IMAGE
+          ports:
+          - containerPort: 60000
+            name: metrics
+          command:
+          - openshift-applier-operator
+          imagePullPolicy: Always
+          env:
+            - name: WATCH_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OPERATOR_NAME
+              value: "openshift-applier-operator"
