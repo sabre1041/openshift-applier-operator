@@ -5,13 +5,16 @@ import (
 	"log"
 	"runtime"
 
-	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
+	"net/http"
+
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
 	"github.com/redhat-cop/openshift-applier-operator/pkg/apis"
 	"github.com/redhat-cop/openshift-applier-operator/pkg/controller"
+	"github.com/redhat-cop/openshift-applier-operator/pkg/handler"
+	"github.com/redhat-cop/openshift-applier-operator/pkg/manager"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
+	k8sManager "sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/signals"
 )
 
@@ -25,11 +28,6 @@ func main() {
 	printVersion()
 	flag.Parse()
 
-	namespace, err := k8sutil.GetWatchNamespace()
-	if err != nil {
-		log.Fatalf("failed to get watch namespace: %v", err)
-	}
-
 	// Get a config to talk to the apiserver
 	cfg, err := config.GetConfig()
 	if err != nil {
@@ -37,12 +35,12 @@ func main() {
 	}
 
 	// Create a new Cmd to provide shared dependencies and start components
-	mgr, err := manager.New(cfg, manager.Options{Namespace: namespace})
+	mgr, err := k8sManager.New(cfg, k8sManager.Options{})
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	log.Print("Registering Components.")
+	log.Printf("Registering Components.")
 
 	// Setup Scheme for all resources
 	if err := apis.AddToScheme(mgr.GetScheme()); err != nil {
@@ -54,7 +52,17 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Print("Starting the Cmd.")
+	applierMgr, err := manager.New(mgr)
+
+	// Set up Applier Manager
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/webhook/", func(w http.ResponseWriter, r *http.Request) { handler.WebhookHandler(w, r, applierMgr) })
+
+	log.Printf("Starting the Web Server")
+	go http.ListenAndServe(":8080", mux)
+
+	log.Printf("Starting the Cmd.")
 
 	// Start the Cmd
 	log.Fatal(mgr.Start(signals.SetupSignalHandler()))

@@ -1,0 +1,59 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: appliers.cop.redhat.com
+spec:
+  group: cop.redhat.com
+  names:
+    kind: Applier
+    listKind: ApplierList
+    plural: appliers
+    singular: applier
+  scope: Namespaced
+  version: v1alpha1
+  validation:
+    openAPIV3Schema:
+      properties:
+        apiVersion:
+          type: string
+        kind:
+          type: string
+        spec:
+          type: object
+          required:
+            - source
+          properties:
+            source:
+              type: object
+              required:
+                - git
+              properties:
+                git:
+                  type: object
+                  required:
+                    - uri
+                  properties:
+                    uri:
+                      type: string
+                    ref:
+                      type: string
+                    inventoryDir:
+                      type: string
+                    httpProxy:
+                      type: string
+                    httpsProxy:
+                      type: string
+                    noProxy:
+                      type: string
+                    secretName:
+                      type: string
+            webhook:
+              type: object
+              required:
+                - token
+              properties:
+                token:
+                  type: string
+            serviceAccount:
+              type: string
+              

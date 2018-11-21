@@ -1,0 +1,12 @@
+apiVersion: cop.redhat.com/v1alpha1
+kind: Applier
+metadata:
+  name: example-applier
+spec:
+  source:
+    git:
+      uri: https://github.com/redhat-cop/openshift-applier
+      inventoryDir: tests/inventories/params-from-file
+  webhook:
+    token: securetoken
+  serviceAccount: applier
