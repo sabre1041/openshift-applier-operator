@@ -113,6 +113,33 @@ oc apply -f deploy/crds/crd.yml
 oc new-project applier-operator
 ```
 
+* Create a new service account for the operator
+
+```
+oc apply -f deploy/service_account.yaml
+```
+
+* Create the policy resources
+
+```
+oc apply -f deploy/clusterrole.yaml
+oc apply -f deploy/clusterrole_binding.yaml
+```
+
+* Create the build resources
+
+```
+oc apply -f build/build.yaml
+```
+
+* Create the operator
+
+```
+oc apply -f deploy/operator.yaml
+```
+
+Wait until the build completes and the operator deploys. Then, lets go ahead and define what is needed to execute the `openshift-applier`
+
 * Create a new service account to run the applier job pod
 
 ```
@@ -128,19 +155,13 @@ oc adm policy add-cluster-role-to-user self-provisioner -z applier
 * Create the example `Applier` resource
 
 ```
-oc apply -f examples/applier-example.yml
-```
-
-* Start up the project using the operator-sdk (running locally)
-
-```
-operator-sdk up local
+oc apply -f examples/applier-example.yaml
 ```
 
 * Send a webhook post request to the operator
 
 ```
-curl -X POST http://localhost:8080/webhook/applier-operator/securetoken
+curl -X POST http://$(oc get route openshift-applier-operator --template='{{ .spec.host }})/webhook/applier-operator/securetoken
 ```
 
 The pods executing the openshift-applier are then launched provisioning resources within the environment

@@ -1,11 +1,12 @@
-kind: RoleBinding
+kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: openshift-applier-operator
 subjects:
 - kind: ServiceAccount
   name: openshift-applier-operator
+  namespace: applier-operator
 roleRef:
-  kind: Role
+  kind: ClusterRole
   name: openshift-applier-operator
   apiGroup: rbac.authorization.k8s.io
