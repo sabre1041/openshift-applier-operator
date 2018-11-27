@@ -101,10 +101,16 @@ git clone <GIT_URL>
 cd openshift-applier-operator
 ```
 
+* Resolve dependencies
+
+```
+dep ensure
+```
+
 * Deploy the custom resource
 
 ```
-oc apply -f deploy/crds/crd.yml
+oc apply -f deploy/crds/crd.yaml
 ```
 
 * Create a new Project
