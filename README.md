@@ -104,7 +104,7 @@ cd openshift-applier-operator
 * Deploy the custom resource
 
 ```
-oc apply -f deploy/crds/crd.yml
+oc apply -f deploy/crds/crd.yaml
 ```
 
 * Create a new Project
@@ -161,7 +161,7 @@ oc apply -f examples/applier-example.yaml
 * Send a webhook post request to the operator
 
 ```
-curl -X POST http://$(oc get route openshift-applier-operator --template='{{ .spec.host }})/webhook/applier-operator/securetoken
+curl -X POST http://$(oc get route openshift-applier-operator --template='{{ .spec.host }}')/webhook/$(oc get applier example-applier --template='{{ .metadata.namespace }}/{{ .metadata.name }}/{{ .spec.webhook.token }}')
 ```
 
 The pods executing the openshift-applier are then launched provisioning resources within the environment

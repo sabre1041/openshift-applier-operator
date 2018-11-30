@@ -156,7 +156,7 @@ func GenerateJob(applier *copapi.Applier) (*batchv1.Job, error) {
 	return job, nil
 }
 
-func ParseQueryString(querystring string) (string, string, error) {
+func ParseQueryString(querystring string) (string, string, string, error) {
 
 	var finalArray []string
 
@@ -166,11 +166,11 @@ func ParseQueryString(querystring string) (string, string, error) {
 		}
 	}
 
-	if len(finalArray) < 2 {
-		return "", "", fmt.Errorf("")
+	if len(finalArray) < 3 {
+		return "", "", "", fmt.Errorf("Invalid Number of Webhook Path Parameters")
 	}
 
-	return finalArray[len(finalArray)-2], finalArray[len(finalArray)-1], nil
+	return finalArray[len(finalArray)-3], finalArray[len(finalArray)-2], finalArray[len(finalArray)-1], nil
 }
 
 func IsErrorMessage(err error, message string) bool {

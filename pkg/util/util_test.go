@@ -6,13 +6,14 @@ func TestParsing(t *testing.T) {
 	tables := []struct {
 		path      string
 		namespace string
+		name      string
 		token     string
 	}{
-		{"/testnamespace/mytoken", "testnamespace", "mytoken"},
+		{"/testnamespace/testresource/mytoken", "testnamespace", "testresource", "mytoken"},
 	}
 
 	for _, table := range tables {
-		namespace, token, err := ParseQueryString(table.path)
+		namespace, name, token, err := ParseQueryString(table.path)
 
 		if err != nil {
 
@@ -29,6 +30,11 @@ func TestParsing(t *testing.T) {
 		}
 
 		// Validate Name
+		if namespace != table.namespace {
+			t.Errorf("Resource Name from path '%s' was incorrect, got: %s, want: %s.", table.path, name, table.name)
+		}
+
+		// Validate Token
 		if token != table.token {
 			t.Errorf("Token from path '%s' was incorrect, got: %s, want: %s.", table.path, token, table.token)
 		}

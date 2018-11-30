@@ -2,11 +2,9 @@ package manager
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	copapi "github.com/redhat-cop/openshift-applier-operator/pkg/apis/cop/v1alpha1"
-	"github.com/redhat-cop/openshift-applier-operator/pkg/errors"
 	"github.com/redhat-cop/openshift-applier-operator/pkg/util"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -44,25 +42,17 @@ func (c *ApplierManager) LaunchApplierJob(applier *copapi.Applier) error {
 
 }
 
-func (c *ApplierManager) FindApplierResourceByToken(namespace string, token string) (*copapi.Applier, error) {
+func (c *ApplierManager) FindApplierResourceByToken(namespace string, name string, token string) (*copapi.Applier, error) {
 
-	applierList := &copapi.ApplierList{}
+	applier := &copapi.Applier{}
 
-	err := c.client.List(context.TODO(), &client.ListOptions{Namespace: namespace}, applierList)
+	err := c.client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: name}, applier)
 
 	if err != nil {
 		return nil, err
 	}
 
-	for _, applier := range applierList.Items {
-
-		if applier.Spec.Webhook.Token == token {
-			return &applier, nil
-		}
-
-	}
-
-	return nil, fmt.Errorf("%s", errors.NotFound)
+	return applier, nil
 
 }
 

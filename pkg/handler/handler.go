@@ -4,9 +4,9 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/redhat-cop/openshift-applier-operator/pkg/errors"
 	"github.com/redhat-cop/openshift-applier-operator/pkg/manager"
 	"github.com/redhat-cop/openshift-applier-operator/pkg/util"
+	"k8s.io/apimachinery/pkg/api/errors"
 )
 
 func WebhookHandler(w http.ResponseWriter, r *http.Request, applierManager *manager.ApplierManager) {
@@ -17,23 +17,26 @@ func WebhookHandler(w http.ResponseWriter, r *http.Request, applierManager *mana
 	}
 
 	// Parse input
-	namespace, token, err := util.ParseQueryString(r.URL.Path)
+	namespace, name, token, err := util.ParseQueryString(r.URL.Path)
 
 	if err != nil {
+		log.Printf("Error Parsing Webhook Query String: %v", err)
 		w.WriteHeader(500)
+		return
 	}
 
 	// First Attempt to locate a Applier Resource
-	applier, err := applierManager.FindApplierResourceByToken(namespace, token)
+	applier, err := applierManager.FindApplierResourceByToken(namespace, name, token)
 
 	if err != nil {
 
-		if util.IsErrorMessage(err, errors.NotFound) {
+		if errors.IsNotFound(err) {
+			log.Printf("Resource with name '%s' in namespace '%s' not found", name, namespace)
 			w.WriteHeader(404)
 			return
 		}
 
-		log.Printf("%v", err)
+		log.Printf("Unexpected Error Finding Applier Resource: %v", err)
 		w.WriteHeader(500)
 		return
 	}
@@ -42,7 +45,7 @@ func WebhookHandler(w http.ResponseWriter, r *http.Request, applierManager *mana
 	err = applierManager.LaunchApplierJob(applier)
 
 	if err != nil {
-		log.Printf("%v", err)
+		log.Printf("Error Launching Job: %v", err)
 		w.WriteHeader(500)
 		return
 	}
